@@ -110,6 +110,10 @@ void hMain()
     hMot3.setEncoderPolarity(Polarity::Reversed);
     hMot4.setMotorPolarity(Polarity::Reversed);
     hMot4.setEncoderPolarity(Polarity::Reversed);
+    hMot1.setSlewRate(0.05);
+    hMot2.setSlewRate(0.05);
+    hMot3.setSlewRate(0.05);
+    hMot4.setSlewRate(0.05);
     LED1.on();
     sys.taskCreate(batteryCheck);
 
