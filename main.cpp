@@ -4,14 +4,19 @@
 #include "tf/tf.h"
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "sensor_msgs/BatteryState.h"
 
 using namespace hFramework;
 
 bool batteryLow = false;
 
 ros::NodeHandle nh;
+
 geometry_msgs::PoseStamped pose;
 ros::Publisher pose_pub("/pose", &pose);
+
+sensor_msgs::BatteryState battery;
+ros::Publisher battery_pub("/battery", &battery);
 
 uint16_t delay = 10; // milliseconds
 uint8_t pose_pub_cnt;
@@ -58,35 +63,37 @@ void twistCallback(const geometry_msgs::Twist &twist)
 void batteryCheck()
 {
     int i = 0;
-    for (;;)
+     for (;;)
     {
-        if (sys.getSupplyVoltage() > 11.1)
+        if (sys.getSupplyVoltage() > 11.1) 
         {
             i--;
-        }
-        else
+        } 
+        else 
         {
             i++;
         }
-        if (i > 50)
+        if (i > 50) 
         {
             batteryLow = true;
             i = 50;
         }
-        if (i < -50)
+        if (i < -50) 
         {
             batteryLow = false;
             i = -50;
         }
-        if (batteryLow == true)
+        if (batteryLow == true) 
         {
             LED1.toggle();
-        }
-        else
+        } 
+        else 
         {
             LED1.on();
         }
         sys.delay(250);
+        battery.voltage = sys.getSupplyVoltage();
+        battery_pub.publish(&battery);
     }
 }
 
@@ -113,6 +120,7 @@ void hMain()
     pose.pose.orientation = tf::createQuaternionFromYaw(0);
 
     nh.advertise(pose_pub);
+    nh.advertise(battery_pub);
     pose_pub_cnt = 0;
 
     while (true)
@@ -132,8 +140,8 @@ void hMain()
         wheel_R_ang_pos = 2 * 3.14 * enc_R / enc_res;
 
         robot_angular_vel = (((wheel_R_ang_pos - wheel_L_ang_pos) * wheel_radius / robot_width) -
-                             robot_angular_pos) /
-                            delay_s;
+                             robot_angular_pos) / 
+                             delay_s;
         robot_angular_pos = (wheel_R_ang_pos - wheel_L_ang_pos) * wheel_radius / robot_width;
 
         robot_x_vel = (wheel_L_ang_vel * wheel_radius + robot_angular_vel * robot_width / 2) *
@@ -147,11 +155,11 @@ void hMain()
         pose_pub_cnt++;
         if (pose_pub_cnt == 10)
         {
-            pose.pose.position.x = robot_x_pos;
-            pose.pose.position.y = robot_y_pos;
-            pose.pose.orientation = tf::createQuaternionFromYaw(robot_angular_pos);
-            pose_pub.publish(&pose);
-            pose_pub_cnt = 0;
+        pose.pose.position.x = robot_x_pos;
+        pose.pose.position.y = robot_y_pos;
+        pose.pose.orientation = tf::createQuaternionFromYaw(robot_angular_pos);
+        pose_pub.publish(&pose);
+        pose_pub_cnt = 0;            
         }
 
         nh.spinOnce();
