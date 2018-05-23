@@ -5,6 +5,7 @@
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "sensor_msgs/BatteryState.h"
+#include <std_msgs/Bool.h>
 
 using namespace hFramework;
 
@@ -47,6 +48,43 @@ float robot_y_vel = 0; // meters per second
 float robot_width = 0.3;    // meters
 float robot_length = 0.105; //meters
 float wheel_radius = 0.04;  //meters
+
+void reset_encoders()
+{
+    hMot1.resetEncoderCnt();
+    hMot2.resetEncoderCnt();
+    hMot3.resetEncoderCnt();
+    hMot4.resetEncoderCnt();
+}
+
+void reset_odom_vars()
+{
+    enc_FL = 0;            // encoder tics
+    enc_RL = 0;            // encoder tics
+    enc_FR = 0;            // encoder tics
+    enc_RR = 0;            // encoder tics
+    enc_L = 0;             // encoder tics
+    wheel_L_ang_pos = 0;   // radians
+    wheel_L_ang_vel = 0;   // radians per second
+    enc_R = 0;             // encoder tics
+    wheel_R_ang_pos = 0;   // radians
+    wheel_R_ang_vel = 0;   // radians per second
+    robot_angular_pos = 0; // radians
+    robot_angular_vel = 0; // radians per second
+    robot_x_pos = 0;       // meters
+    robot_y_pos = 0;       // meters
+    robot_x_vel = 0;       // meters per second
+    robot_y_vel = 0;       // meters per second
+}
+
+void reset_odom(const std_msgs::Bool &msg)
+{
+    if (msg.data == true)
+    {
+        reset_encoders();
+        reset_odom_vars();
+    }
+}
 
 void twistCallback(const geometry_msgs::Twist &twist)
 {
@@ -104,6 +142,7 @@ void batteryCheck()
 }
 
 ros::Subscriber<geometry_msgs::Twist> sub("/cmd_vel", &twistCallback);
+ros::Subscriber<std_msgs::Bool> odom_reset_sub("/reset_odom", &reset_odom);
 
 void hMain()
 {
@@ -112,6 +151,7 @@ void hMain()
     //nh.getHardware()->initWithDevice(&RPi);
     nh.initNode();
     nh.subscribe(sub);
+    nh.subscribe(odom_reset_sub);
     hMot3.setMotorPolarity(Polarity::Reversed);
     hMot3.setEncoderPolarity(Polarity::Reversed);
     hMot4.setMotorPolarity(Polarity::Reversed);
