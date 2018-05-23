@@ -63,37 +63,43 @@ void twistCallback(const geometry_msgs::Twist &twist)
 void batteryCheck()
 {
     int i = 0;
-     for (;;)
+    int publish_cnt = 0;
+    for (;;)
     {
-        if (sys.getSupplyVoltage() > 11.1) 
+        if (sys.getSupplyVoltage() > 10.8)
         {
             i--;
-        } 
-        else 
+        }
+        else
         {
             i++;
         }
-        if (i > 50) 
+        if (i > 50)
         {
             batteryLow = true;
             i = 50;
         }
-        if (i < -50) 
+        if (i < -50)
         {
             batteryLow = false;
             i = -50;
         }
-        if (batteryLow == true) 
+        if (batteryLow == true)
         {
             LED1.toggle();
-        } 
-        else 
+        }
+        else
         {
             LED1.on();
         }
         sys.delay(250);
-        battery.voltage = sys.getSupplyVoltage();
-        battery_pub.publish(&battery);
+        if (publish_cnt == 8)
+        {
+            battery.voltage = sys.getSupplyVoltage();
+            battery_pub.publish(&battery);
+            publish_cnt = 0;
+        }
+        publish_cnt++;
     }
 }
 
@@ -144,8 +150,8 @@ void hMain()
         wheel_R_ang_pos = 2 * 3.14 * enc_R / enc_res;
 
         robot_angular_vel = (((wheel_R_ang_pos - wheel_L_ang_pos) * wheel_radius / robot_width) -
-                             robot_angular_pos) / 
-                             delay_s;
+                             robot_angular_pos) /
+                            delay_s;
         robot_angular_pos = (wheel_R_ang_pos - wheel_L_ang_pos) * wheel_radius / robot_width;
 
         robot_x_vel = (wheel_L_ang_vel * wheel_radius + robot_angular_vel * robot_width / 2) *
@@ -159,11 +165,11 @@ void hMain()
         pose_pub_cnt++;
         if (pose_pub_cnt == 10)
         {
-        pose.pose.position.x = robot_x_pos;
-        pose.pose.position.y = robot_y_pos;
-        pose.pose.orientation = tf::createQuaternionFromYaw(robot_angular_pos);
-        pose_pub.publish(&pose);
-        pose_pub_cnt = 0;            
+            pose.pose.position.x = robot_x_pos;
+            pose.pose.position.y = robot_y_pos;
+            pose.pose.orientation = tf::createQuaternionFromYaw(robot_angular_pos);
+            pose_pub.publish(&pose);
+            pose_pub_cnt = 0;
         }
 
         nh.spinOnce();
