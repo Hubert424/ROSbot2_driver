@@ -8,7 +8,7 @@ This repository contains driver for ROSbot 2. Driver allows for controlling moto
 * Upload to CORE2
 * Start serial bridge `/opt/husarion/tools/rpi-linux/ros-core2-client /dev/ttyCORE2`
 
-## Subscried topics
+## Subscribed topics
 
 * `/cmd_vel` [geometry_msgs::Twist] - velocity commands for robot
 * `/reset_odom` [std_msgs::Bool] - trigger to reset odometry and encoders
